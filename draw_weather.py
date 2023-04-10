@@ -186,3 +186,15 @@ def draw_everything(weather, fcast: dict):
     x = 0
     # inky_display.set_image(img_trans)
     # inky_display.show()
+
+
+def draw_error(exception: Exception):
+    error_image = Image.new('1', (wx1, hx1), 255)
+    draw = ImageDraw.Draw(error_image)
+    draw.text((0, 0), "ERROR", font=clockFont, fill=black)
+    draw.text((0, 50), str(exception), font=dateFont, fill=black)
+    draw.text((0, 70), 'Retrying in 30 seconds', font=dateFont, fill=black)
+    draw.text((0, 80), 'Last Refresh: ' + str(datetime.now().strftime('%H:%M')), font=dateFont, fill=black)
+    error_image.show()
+    x = 0
+    # draw.text((100, 300), 'Retrying in 30 seconds', font=dateFont, fill=black)
