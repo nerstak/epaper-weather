@@ -3,3 +3,4 @@ units: metric
 coordinates:
   lat: LAT
   lon: LON
+update_freq_min: 30

@@ -29,7 +29,3 @@ def _get_weather(uri: str) -> dict:
         raise Exception("{}: {}".format(result['cod'], result['message']))
 
     return result
-
-
-if __name__ == "__main__":
-    print(get_forecast5(48.864716, 2.349014, "metric"))
