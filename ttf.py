@@ -11,13 +11,13 @@ from xml.dom import minidom
 import html
 
 
-def ttfUnicode_from_iconId(icon_id, sys_pod, xml_map):
+def icon_id_to_unicode_ttf(icon_id, sys_pod, xml_map):
     data = ''
     ico_name = "wi_owm_"
-    if (sys_pod == 'd'):
-        ico_name += "day_";
-    elif (sys_pod == 'n'):
-        ico_name += "night_";
+    if sys_pod == 'd':
+        ico_name += "day_"
+    elif sys_pod == 'n':
+        ico_name += "night_"
     else:
         raise ValueError('Invalid pod value')
 
@@ -32,7 +32,7 @@ def ttfUnicode_from_iconId(icon_id, sys_pod, xml_map):
     return data
 
 
-def ttfUnicode_from_icon(icon, xml_map):
+def icon_to_unicode(icon, xml_map):
     # https://openweathermap.org/weather-conditions
     ow_iconId_map = {}
 
@@ -76,5 +76,5 @@ def ttfUnicode_from_icon(icon, xml_map):
     icon_id = ow_iconId_map[icon]["id"]
     sys_pod = ow_iconId_map[icon]["pod"]
 
-    data = ttfUnicode_from_iconId(icon_id, sys_pod, xml_map)
+    data = icon_id_to_unicode_ttf(icon_id, sys_pod, xml_map)
     return data
