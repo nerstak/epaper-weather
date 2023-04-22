@@ -19,7 +19,7 @@ def icon_id_to_unicode_ttf(icon_id, sys_pod, xml_map):
     elif sys_pod == 'n':
         ico_name += "night_"
     else:
-        raise ValueError('Invalid pod value')
+        ico_name = "wi_"
 
     ico_name += icon_id
     xml_dom = minidom.parse(xml_map)

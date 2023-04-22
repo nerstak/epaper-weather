@@ -3,7 +3,7 @@ from datetime import datetime
 
 from PIL import ImageFont, Image, ImageDraw
 
-from config import workdir, debug
+from config import workdir, debug, CONFIG
 from ttf import icon_to_unicode, icon_id_to_unicode_ttf
 
 clockFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf", 28)
@@ -27,7 +27,9 @@ grey = 'rgb(235,235,235)'
 
 wx0 = 0
 hx0 = 0
+# screenWidth = 264  # epd.width
 screenWidth = 249  # epd.width
+# screenHeight = 176  # epd.height
 screenHeight = 122  # epd.height
 
 # 180° rotated display
@@ -63,8 +65,6 @@ def draw_everything(weather, fcast: dict):
     draw = ImageDraw.Draw(img)
 
     draw_current_weather(draw, weather)
-
-    # begin of Forecast boxes
     draw_forecast_boxes(draw, fcast)
 
     # img_trans = img.transpose(Image.ROTATE_180)
@@ -139,10 +139,15 @@ def draw_current_weather(draw, weather):
     draw.text((left_padding, hour_hx1), _current_date(), fill=black, font=dateFont)
 
     # current weather
-    city_text = weather["name"]
+    city_text = CONFIG.get("city", weather["name"])
     temperature_text = weather["main"]["temp"]
+    temp_feels_text = weather["main"]["feels_like"]
     humidity_text = weather["main"]["humidity"]
     description_text = weather["weather"][0]["description"]
+
+    sunrise_text = datetime.fromtimestamp(weather["sys"]["sunrise"]).strftime('%H:%M')
+    sunset_text = datetime.fromtimestamp(weather["sys"]["sunset"]).strftime('%H:%M')
+
     weather_ico_code = weather["weather"][0]["icon"]
     print(
         "city: {}: temp {}°C, humidity {}%, {} ({})\n\n".format(city_text, temperature_text, humidity_text,
@@ -156,12 +161,13 @@ def draw_current_weather(draw, weather):
     draw.text((ico_wx0, 0), weather_icon_unicode, fill=black, font=wIcoFont)
 
     # City Name
-    city_wx0, city_hx0, city_wx1, city_hx1 = draw.textbbox(xy=(left_padding, ico_hx1), text=city_text, font=wCityFont)
-    draw.text((city_wx0, ico_hx1), city_text, fill=black, font=wCityFont)
+    city_and_desc_hx0 = max(ico_hx1, date_hx1) + left_padding
+    city_wx0, city_hx0, city_wx1, city_hx1 = draw.textbbox(xy=(left_padding, city_and_desc_hx0), text=city_text, font=wCityFont)
+    draw.text((city_wx0, city_and_desc_hx0), city_text, fill=black, font=wCityFont)
 
     # Description Weather
-    desc_wx0, desc_hx0, desc_wx1, desc_hx1 = draw.textbbox(xy=(ico_wx0, ico_hx1), text=description_text, font=wDetFont)
-    draw.text((ico_wx0, ico_hx1), description_text, fill=black, font=wDetFont)
+    desc_wx0, desc_hx0, desc_wx1, desc_hx1 = draw.textbbox(xy=(ico_wx0, city_and_desc_hx0), text=description_text, font=wDetFont)
+    draw.text((ico_wx0, city_and_desc_hx0), description_text, fill=black, font=wDetFont)
 
     # Temperature
     temperature_text = str(math.ceil(temperature_text)) + "°C"
@@ -181,6 +187,26 @@ def draw_current_weather(draw, weather):
                                                                            text=humidity_text, font=wHumFont)
     humidity_padding = int(((values_size_available - (humidity_wx1 - humidity_wx0)) / 2))
     draw.text((humidity_wx0 + humidity_padding, temperature_hx1), humidity_text, fill=black, font=wHumFont)
+
+    # Feels Temperature
+    temp_feels_text = " => " + str(math.ceil(temp_feels_text)) + "°C"
+    temp_feels_wx0, temp_feels_hx0, temp_feels_wx1, temp_feels_hx1 = draw.textbbox(xy=(temperature_wx1, 5),
+                                                                                    text=temp_feels_text,
+                                                                                    font=wTempFont)
+
+    draw.text((temperature_wx1, 5), temp_feels_text, fill=black, font=wTempFont)
+
+    if w_hx1 - city_hx1 > 25:
+        sunrise_icon = icon_id_to_unicode_ttf('sunrise', '', wiXmlMap)
+        sunset_icon = icon_id_to_unicode_ttf('moonrise', '', wiXmlMap)
+        l_ico = draw.textlength(text=sunrise_icon, font=fBoxWiFont)
+        draw.text(xy=(5, w_hx1 - 25), text=sunrise_icon, font=fBoxWiFont, fill=black)
+        l_sunset = draw.textlength(text=sunrise_text, font=wTempFont) + l_ico
+        draw.text(xy=(5 + l_ico + 2, w_hx1 - 22), text=sunrise_text, font=wTempFont, fill=black)
+
+        l_ico = draw.textlength(text=sunset_icon, font=fBoxWiFont)
+        draw.text(xy=(l_sunset + 5 * 4, w_hx1 - 25), text=sunset_icon, font=fBoxWiFont, fill=black)
+        draw.text(xy=(l_sunset + 5 * 4 + l_ico + 2, w_hx1 - 22), text=sunset_text, font=wTempFont, fill=black)
 
 
 def draw_error(exception: Exception):
@@ -210,10 +236,12 @@ def format_data(fcast_json, slot):
     data = {}
     fcast_data = fcast_json['list'][slot]
     temp = math.ceil(fcast_data['main']['temp'])
+    temp_feel = math.ceil(fcast_data['main']['feels_like'])
     hum = math.ceil(fcast_data['main']['humidity'])
     dt = datetime.utcfromtimestamp(fcast_data['dt'])
 
     data['temp'] = str(temp) + "°C"
+    data['temp_feel'] = str(temp_feel) + "°C"
     data['hum'] = str(hum) + "%"
     data['iconId'] = str(fcast_data['weather'][0]['id'])
     data['pod'] = str(fcast_data['sys']['pod'])
