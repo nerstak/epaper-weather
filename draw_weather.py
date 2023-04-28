@@ -1,10 +1,16 @@
 import math
+import os
+import time
 from datetime import datetime
 
 from PIL import ImageFont, Image, ImageDraw
 
 from config import workdir, debug, CONFIG
 from ttf import icon_to_unicode, icon_id_to_unicode_ttf
+
+from lib.waveshare_epd import epd2in13_V3
+
+epd = epd2in13_V3.EPD()
 
 clockFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf", 28)
 dateFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf", 11)
@@ -27,10 +33,12 @@ grey = 'rgb(235,235,235)'
 
 wx0 = 0
 hx0 = 0
-# screenWidth = 264  # epd.width
-screenWidth = 249  # epd.width
-# screenHeight = 176  # epd.height
-screenHeight = 122  # epd.height
+# screenWidth = 264
+# screenWidth = 249
+screenWidth = epd.height
+# screenHeight = 176
+# screenHeight = 122
+screenHeight = epd.width
 
 # 180° rotated display
 w_wx0 = 0  # current weather area: start width
@@ -52,6 +60,11 @@ print("Display width {}, height {}".format(screenWidth, screenHeight)) if debug 
 print("forecast box fBox_wx1 {}, fBox_hx1 {}".format(fBox_wx1, fBox_hx1)) if debug else None
 
 
+def setup_hardware():
+    epd.init()
+    epd.Clear()
+
+
 def _current_time():
     return datetime.now().strftime('%H:%M')
 
@@ -60,18 +73,26 @@ def _current_date():
     return datetime.now().strftime('%a, %b %d')
 
 
+def draw_image_on_hardware(img: Image):
+    epd.init()
+    # Initialize the drawing context with template as background
+    img.save(os.path.join("/tmp", "image.png"))
+
+    screen_output_file = Image.open(os.path.join("/tmp", "image.png"))
+    epd.display(epd.getbuffer(screen_output_file))
+    time.sleep(2)
+    epd.sleep()
+
+
 def draw_everything(weather, fcast: dict):
     img = Image.new("L", (screenWidth, screenHeight), 255)
     draw = ImageDraw.Draw(img)
 
     draw_current_weather(draw, weather)
     draw_forecast_boxes(draw, fcast)
-
-    # img_trans = img.transpose(Image.ROTATE_180)
-    img.show()
-    x = 0
-    # inky_display.set_image(img_trans)
-    # inky_display.show()
+    img_rotated = img.transpose(Image.ROTATE_180)
+    draw_image_on_hardware(img_rotated)
+    img_rotated.close()
 
 
 def draw_forecast_boxes(draw, fcast):
@@ -162,11 +183,13 @@ def draw_current_weather(draw, weather):
 
     # City Name
     city_and_desc_hx0 = max(ico_hx1, date_hx1) + left_padding
-    city_wx0, city_hx0, city_wx1, city_hx1 = draw.textbbox(xy=(left_padding, city_and_desc_hx0), text=city_text, font=wCityFont)
+    city_wx0, city_hx0, city_wx1, city_hx1 = draw.textbbox(xy=(left_padding, city_and_desc_hx0), text=city_text,
+                                                           font=wCityFont)
     draw.text((city_wx0, city_and_desc_hx0), city_text, fill=black, font=wCityFont)
 
     # Description Weather
-    desc_wx0, desc_hx0, desc_wx1, desc_hx1 = draw.textbbox(xy=(ico_wx0, city_and_desc_hx0), text=description_text, font=wDetFont)
+    desc_wx0, desc_hx0, desc_wx1, desc_hx1 = draw.textbbox(xy=(ico_wx0, city_and_desc_hx0), text=description_text,
+                                                           font=wDetFont)
     draw.text((ico_wx0, city_and_desc_hx0), description_text, fill=black, font=wDetFont)
 
     # Temperature
@@ -191,8 +214,8 @@ def draw_current_weather(draw, weather):
     # Feels Temperature
     temp_feels_text = " => " + str(math.ceil(temp_feels_text)) + "°C"
     temp_feels_wx0, temp_feels_hx0, temp_feels_wx1, temp_feels_hx1 = draw.textbbox(xy=(temperature_wx1, 5),
-                                                                                    text=temp_feels_text,
-                                                                                    font=wTempFont)
+                                                                                   text=temp_feels_text,
+                                                                                   font=wTempFont)
 
     draw.text((temperature_wx1, 5), temp_feels_text, fill=black, font=wTempFont)
 
@@ -222,7 +245,9 @@ def draw_error(exception: Exception):
     draw.text((0, 70), 'Retrying in a minute', font=dateFont, fill=black)
     draw.text((0, 80), 'Last Refresh: ' + str(_current_time()) + " " + str(_current_date()), font=dateFont, fill=black)
     error_image.show()
-    error_image.close()
+    img_rotated = error_image.transpose(Image.ROTATE_180)
+    draw_image_on_hardware(img_rotated)
+    img_rotated.close()
 
 
 def format_data(fcast_json, slot):
