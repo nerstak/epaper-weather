@@ -60,20 +60,34 @@ print("Display width {}, height {}".format(screenWidth, screenHeight)) if debug 
 print("forecast box fBox_wx1 {}, fBox_hx1 {}".format(fBox_wx1, fBox_hx1)) if debug else None
 
 
-def setup_hardware():
+def clear_screen():
     epd.init()
     epd.Clear()
+    time.sleep(2)
+    epd.sleep()
 
 
 def _current_time():
+    """
+    Format current time (hour & minutes)
+    :return: str
+    """
     return datetime.now().strftime('%H:%M')
 
 
 def _current_date():
+    """
+    Format current date
+    :return: str
+    """
     return datetime.now().strftime('%a, %b %d')
 
 
 def draw_image_on_hardware(img: Image):
+    """
+    Draw given image to hardware e-ink
+    :param img: Image
+    """
     epd.init()
     # Initialize the drawing context with template as background
     img.save(os.path.join("/tmp", "image.png"))
@@ -252,11 +266,11 @@ def draw_error(exception: Exception):
 
 def format_data(fcast_json, slot):
     """
-        Format the data into a dict
-        :param fcast_json: JSON
-        :param slot: Slot of array to load data from
-        :return:
-        """
+    Format the data into a dict
+    :param fcast_json: JSON
+    :param slot: Slot of array to load data from
+    :return:
+    """
 
     data = {}
     fcast_data = fcast_json['list'][slot]
