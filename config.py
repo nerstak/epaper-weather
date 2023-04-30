@@ -1,8 +1,11 @@
+import logging
 import os
 
 import yaml
 from yaml import SafeLoader
 
+log = logging.getLogger("epaper_weather")
+logging.basicConfig(level=logging.DEBUG)
 
 def load_config(cfg):
     with open(cfg, 'r') as f:

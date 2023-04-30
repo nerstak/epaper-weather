@@ -1,16 +1,12 @@
 import math
-import os
-import time
 from datetime import datetime
 
 from PIL import ImageFont, Image, ImageDraw
 
 from config import workdir, debug, CONFIG
+from epd_handler import draw_image_on_hardware, screenWidth, screenHeight
 from ttf import icon_to_unicode, icon_id_to_unicode_ttf
 
-from lib.waveshare_epd import epd2in13_V3
-
-epd = epd2in13_V3.EPD()
 
 clockFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf", 28)
 dateFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf", 11)
@@ -33,12 +29,6 @@ grey = 'rgb(235,235,235)'
 
 wx0 = 0
 hx0 = 0
-# screenWidth = 264
-# screenWidth = 249
-screenWidth = epd.height
-# screenHeight = 176
-# screenHeight = 122
-screenHeight = epd.width
 
 # 180° rotated display
 w_wx0 = 0  # current weather area: start width
@@ -56,17 +46,6 @@ forecast_boxes_col = 4
 fBox_wx1 = math.floor(w_wx1 / forecast_boxes_col)
 fBox_hx1 = math.floor(f_hx1 / forecast_boxes_row)
 
-print("Display width {}, height {}".format(screenWidth, screenHeight)) if debug else None
-print("forecast box fBox_wx1 {}, fBox_hx1 {}".format(fBox_wx1, fBox_hx1)) if debug else None
-
-
-def clear_screen():
-    epd.init()
-    epd.Clear()
-    time.sleep(2)
-    epd.sleep()
-
-
 def _current_time():
     """
     Format current time (hour & minutes)
@@ -81,21 +60,6 @@ def _current_date():
     :return: str
     """
     return datetime.now().strftime('%a, %b %d')
-
-
-def draw_image_on_hardware(img: Image):
-    """
-    Draw given image to hardware e-ink
-    :param img: Image
-    """
-    epd.init()
-    # Initialize the drawing context with template as background
-    img.save(os.path.join("/tmp", "image.png"))
-
-    screen_output_file = Image.open(os.path.join("/tmp", "image.png"))
-    epd.display(epd.getbuffer(screen_output_file))
-    time.sleep(2)
-    epd.sleep()
 
 
 def draw_everything(weather, fcast: dict):
@@ -258,7 +222,6 @@ def draw_error(exception: Exception):
     draw.text((0, 50), str(exception), font=dateFont, fill=black)
     draw.text((0, 70), 'Retrying in a minute', font=dateFont, fill=black)
     draw.text((0, 80), 'Last Refresh: ' + str(_current_time()) + " " + str(_current_date()), font=dateFont, fill=black)
-    error_image.show()
     img_rotated = error_image.transpose(Image.ROTATE_180)
     draw_image_on_hardware(img_rotated)
     img_rotated.close()
