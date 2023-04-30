@@ -2,17 +2,17 @@ import requests
 
 from config import CONFIG
 
-URL_FORECAST5 = "https://api.openweathermap.org/data/2.5/forecast?lat={}&lon={}&appid={}&units={}"
-URL_CURRENT_WEATHER = "https://api.openweathermap.org/data/2.5/weather?lat={}&lon={}&appid={}&units={}"
+_URL_FORECAST5 = "https://api.openweathermap.org/data/2.5/forecast?lat={}&lon={}&appid={}&units={}"
+_URL_CURRENT_WEATHER = "https://api.openweathermap.org/data/2.5/weather?lat={}&lon={}&appid={}&units={}"
 
 
 def get_current(lat: float, lon: float, unit: str) -> dict:
-    uri = URL_CURRENT_WEATHER.format(lat, lon, CONFIG["API_KEY"], unit)
+    uri = _URL_CURRENT_WEATHER.format(lat, lon, CONFIG["API_KEY"], unit)
     return _get_weather(uri)
 
 
 def get_forecast5(lat: float, lon: float, unit: str) -> dict:
-    uri = URL_FORECAST5.format(lat, lon, CONFIG["API_KEY"], unit)
+    uri = _URL_FORECAST5.format(lat, lon, CONFIG["API_KEY"], unit)
     return _get_weather(uri)
 
 

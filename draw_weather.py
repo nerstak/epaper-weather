@@ -62,7 +62,7 @@ def _current_date():
     return datetime.now().strftime('%a, %b %d')
 
 
-def draw_everything(weather, fcast: dict):
+def draw_weather_image(weather, fcast: dict):
     img = Image.new("L", (screenWidth, screenHeight), 255)
     draw = ImageDraw.Draw(img)
 
@@ -74,6 +74,11 @@ def draw_everything(weather, fcast: dict):
 
 
 def draw_forecast_boxes(draw, fcast):
+    """
+    Draw all forecast boxes
+    :param draw: Image with drawing
+    :param fcast: Forecast data
+    """
     for fcast_col in range(forecast_boxes_col):
         for fcast_row in range(forecast_boxes_row):
             box_pos = (fcast_row * forecast_boxes_col) + fcast_col
@@ -87,40 +92,49 @@ def draw_forecast_boxes(draw, fcast):
 
 
 def draw_forecast_box(forecast_data, box_col, box_row, draw):
-    # current forecast box boundaries
+    """
+    Draw a single forecast box
+    :param forecast_data: Forecast data
+    :param box_col: Number of colum
+    :param box_row: Number of row
+    :param draw: Image with drawing
+    """
+
+    # Forecast box boundaries
     box_wx0 = f_wx0 + (box_col * fBox_wx1)
     box_hx0 = f_hx0 + (box_row * fBox_hx1)
     box_wx1 = box_wx0 + fBox_wx1
     box_hx1 = box_hx0 + fBox_hx1
-    draw.rectangle(((box_wx0, box_hx0), (box_wx1, box_hx1)), outline=black, width=1)  # outer border
-    draw.line([(box_wx1, box_hx0), (box_wx1, box_hx1)], fill=black, width=1)  # right border
-    draw.line([(box_wx0, box_hx1), (box_wx1, box_hx1)], fill=black, width=1)  # lower border
+    draw.rectangle(((box_wx0, box_hx0), (box_wx1, box_hx1)), outline=black, width=1)
+    draw.line([(box_wx1, box_hx0), (box_wx1, box_hx1)], fill=black, width=1)
+    draw.line([(box_wx0, box_hx1), (box_wx1, box_hx1)], fill=black, width=1)
 
     # Loading data
     weather_icon = icon_id_to_unicode_ttf(forecast_data['iconId'], forecast_data['pod'], wiXmlMap)
     hour_text = forecast_data['time']
     temperature_text = forecast_data['temp']
 
-    # text size
-    cfBoxWi_w, cfBoxWi_h = fBoxWiFont.getsize(weather_icon)
-    cfBoxHour_w, cfBoxHour_h = fBoxFont.getsize(hour_text)
-    cfBoxTemp_w, cfBoxTemp_h = fBoxFont.getsize(temperature_text)
-    cfBoxWiHalfPadding = (fBox_wx1 - (cfBoxWi_w + cfBoxTemp_w)) / 2
-    # print weather icon
-    # print("forecast weather icon size: width {}, height {}".format(cfBoxWi_w, cfBoxWi_h))
-    cfBoxWi_rel_wx0 = box_wx0 + int((cfBoxWiHalfPadding / 2))
-    cfBoxWi_rel_hx0 = box_hx0
-    draw.text((cfBoxWi_rel_wx0, cfBoxWi_rel_hx0), weather_icon, fill=black, font=fBoxWiFont)
-    # print box's hour
-    # print("forecast hour text size: width {}, height {}".format(cfBoxHour_w, cfBoxHour_h))
-    cfBoxHour_rel_wx0 = cfBoxWi_rel_wx0 + cfBoxWi_h + int((cfBoxWiHalfPadding / 2))
-    cfBoxHour_rel_hx0 = box_hx0
-    draw.text((cfBoxHour_rel_wx0, cfBoxHour_rel_hx0), hour_text, fill=black, font=fBoxFont)
-    # print temp
-    # print("forecast temp text size: width {}, height {}".format(cfBoxTemp_w, cfBoxTemp_h))
-    cfBoxTemp_rel_wx0 = cfBoxWi_rel_wx0 + cfBoxWi_h + int((cfBoxWiHalfPadding / 2))
-    cfBoxTemp_rel_hx0 = box_hx0 + cfBoxHour_h
-    draw.text((cfBoxTemp_rel_wx0, cfBoxTemp_rel_hx0), temperature_text, fill=black, font=fBoxFont)
+    # Text size
+    ico_wx0, ico_hx0, ico_wx1, ico_hx1 = draw.textbbox(xy=(0, 0), text=weather_icon, font=fBoxWiFont)
+    _, hour_hx0, _, hour_hx1 = draw.textbbox(xy=(0, 0), text=hour_text, font=fBoxFont)
+    temp_wx0, temp_hx0, temp_wx1, temp_hx1 = draw.textbbox(xy=(0, 0), text=temperature_text, font=fBoxFont)
+
+    forecast_box_with_padding = (fBox_wx1 - ((ico_wx1 - ico_wx0) + (temp_wx1 - temp_wx0))) / 2
+
+    # Print Weather Icon
+    weather_icon_wx0 = box_wx0 + int((forecast_box_with_padding / 2))
+    weather_icon_hx0 = box_hx0
+    draw.text((weather_icon_wx0, weather_icon_hx0), weather_icon, fill=black, font=fBoxWiFont)
+
+    # Print Time
+    hour_wx0 = weather_icon_wx0 + (ico_hx1 - ico_hx0) + int((forecast_box_with_padding / 2))
+    hour_hx0 = box_hx0
+    draw.text((hour_wx0, hour_hx0), hour_text, fill=black, font=fBoxFont)
+
+    # Print Temperature
+    temperature_wx0 = weather_icon_wx0 + (ico_hx1 - ico_hx0) + int((forecast_box_with_padding / 2))
+    temperature_hx0 = box_hx0 + (hour_hx1 - hour_hx0)
+    draw.text((temperature_wx0, temperature_hx0), temperature_text, fill=black, font=fBoxFont)
 
 
 def draw_current_weather(draw, weather):
@@ -131,13 +145,14 @@ def draw_current_weather(draw, weather):
     """
     left_padding = 5
 
+    # Date & Time
     hour_wx0, hour_hx0, hour_wx1, hour_hx1 = draw.textbbox(xy=(left_padding, 0), text=_current_time(), font=clockFont)
     date_wx0, date_hx0, date_wx1, date_hx1 = draw.textbbox(xy=(left_padding, hour_hx1), text=_current_date(),
                                                            font=dateFont)
     draw.text((left_padding, 0), _current_time(), fill=black, font=clockFont)
     draw.text((left_padding, hour_hx1), _current_date(), fill=black, font=dateFont)
 
-    # current weather
+    # Current weather
     city_text = CONFIG.get("city", weather["name"])
     temperature_text = weather["main"]["temp"]
     temp_feels_text = weather["main"]["feels_like"]
@@ -148,10 +163,6 @@ def draw_current_weather(draw, weather):
     sunset_text = datetime.fromtimestamp(weather["sys"]["sunset"]).strftime('%H:%M')
 
     weather_ico_code = weather["weather"][0]["icon"]
-    print(
-        "city: {}: temp {}°C, humidity {}%, {} ({})\n\n".format(city_text, temperature_text, humidity_text,
-                                                                description_text,
-                                                                weather_ico_code)) if debug else None
 
     # Weather Icon
     weather_icon_unicode = icon_to_unicode(weather_ico_code, wiXmlMap)

@@ -6,7 +6,7 @@ from datetime import datetime
 import atexit
 
 from config import CONFIG, wakeup_time_s, log
-from draw_weather import draw_everything, draw_error
+from draw_weather import draw_weather_image, draw_error
 from epd_handler import clear_screen
 
 from openweather import get_current, get_forecast5
@@ -35,7 +35,7 @@ while True:
             draw_error(e)
         else:
             log.debug("Drawing image")
-            draw_everything(weather, fcast)
+            draw_weather_image(weather, fcast)
             error_count = 0
     # TODO: Wait more if error count is high
     time.sleep(wakeup_time_s)

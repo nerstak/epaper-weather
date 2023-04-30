@@ -4,3 +4,4 @@ coordinates:
   lat: LAT
   lon: LON
 update_freq_min: 30
+city: CITY_NAME
