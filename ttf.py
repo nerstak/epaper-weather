@@ -10,6 +10,8 @@
 from xml.dom import minidom
 import html
 
+from PIL import ImageDraw, ImageFont
+
 
 def icon_id_to_unicode_ttf(icon_id, sys_pod, xml_map):
     data = ''
@@ -78,3 +80,15 @@ def icon_to_unicode(icon, xml_map):
 
     data = icon_id_to_unicode_ttf(icon_id, sys_pod, xml_map)
     return data
+
+def get_text_size(draw: ImageDraw, text: str, font: ImageFont):
+    """
+    Get image text size
+    :param draw: ImageDraw
+    :param text: Text to get size from
+    :param font: Font
+    :return: (width, height)
+    """
+
+    wx0, hx0, wx1, hx1 =  draw.textbbox(xy=(0, 0), text=text, font=font)
+    return wx1 - wx0, hx1 - hx0

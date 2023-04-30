@@ -3,10 +3,9 @@ from datetime import datetime
 
 from PIL import ImageFont, Image, ImageDraw
 
-from config import workdir, debug, CONFIG
+from config import workdir, CONFIG
 from epd_handler import draw_image_on_hardware, screenWidth, screenHeight
-from ttf import icon_to_unicode, icon_id_to_unicode_ttf
-
+from ttf import icon_to_unicode, icon_id_to_unicode_ttf, get_text_size
 
 clockFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf", 28)
 dateFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf", 11)
@@ -45,6 +44,7 @@ forecast_boxes_row = 2
 forecast_boxes_col = 4
 fBox_wx1 = math.floor(w_wx1 / forecast_boxes_col)
 fBox_hx1 = math.floor(f_hx1 / forecast_boxes_row)
+
 
 def _current_time():
     """
@@ -115,26 +115,27 @@ def draw_forecast_box(forecast_data, box_col, box_row, draw):
     temperature_text = forecast_data['temp']
 
     # Text size
-    ico_wx0, ico_hx0, ico_wx1, ico_hx1 = draw.textbbox(xy=(0, 0), text=weather_icon, font=fBoxWiFont)
-    _, hour_hx0, _, hour_hx1 = draw.textbbox(xy=(0, 0), text=hour_text, font=fBoxFont)
-    temp_wx0, temp_hx0, temp_wx1, temp_hx1 = draw.textbbox(xy=(0, 0), text=temperature_text, font=fBoxFont)
+    ico_width, ico_height = get_text_size(draw=draw, text=weather_icon, font=fBoxWiFont)
+    hour_width, hour_height = get_text_size(draw=draw, text=hour_text, font=fBoxFont)
+    temp_width, temp_height = get_text_size(draw=draw, text=temperature_text, font=fBoxFont)
 
-    forecast_box_with_padding = (fBox_wx1 - ((ico_wx1 - ico_wx0) + (temp_wx1 - temp_wx0))) / 2
+    width_padding = (fBox_wx1 - (ico_width + temp_width)) / 2
+    height_padding = (fBox_hx1 - (hour_height + temp_height)) / 2
 
     # Print Weather Icon
-    weather_icon_wx0 = box_wx0 + int((forecast_box_with_padding / 2))
-    weather_icon_hx0 = box_hx0
-    draw.text((weather_icon_wx0, weather_icon_hx0), weather_icon, fill=black, font=fBoxWiFont)
+    ico_rel_wx0 = box_wx0 + int((width_padding / 2))
+    ico_rel_hx0 = box_hx0
+    draw.text((ico_rel_wx0, ico_rel_hx0), weather_icon, fill=black, font=fBoxWiFont)
 
     # Print Time
-    hour_wx0 = weather_icon_wx0 + (ico_hx1 - ico_hx0) + int((forecast_box_with_padding / 2))
-    hour_hx0 = box_hx0
-    draw.text((hour_wx0, hour_hx0), hour_text, fill=black, font=fBoxFont)
+    hour_rel_wx0 = ico_rel_wx0 + ico_width + int((width_padding / 2))
+    hour_rel_hx0 = box_hx0
+    draw.text((hour_rel_wx0, hour_rel_hx0), hour_text, fill=black, font=fBoxFont)
 
     # Print Temperature
-    temperature_wx0 = weather_icon_wx0 + (ico_hx1 - ico_hx0) + int((forecast_box_with_padding / 2))
-    temperature_hx0 = box_hx0 + (hour_hx1 - hour_hx0)
-    draw.text((temperature_wx0, temperature_hx0), temperature_text, fill=black, font=fBoxFont)
+    temp_rel_wx0 = ico_rel_wx0 + ico_width + int((width_padding / 2))
+    temp_rel_hx0 = box_hx0 + hour_height + height_padding
+    draw.text((temp_rel_wx0, temp_rel_hx0), temperature_text, fill=black, font=fBoxFont)
 
 
 def draw_current_weather(draw, weather):
@@ -202,21 +203,21 @@ def draw_current_weather(draw, weather):
 
     # Feels Temperature
     temp_feels_text = " => " + str(math.ceil(temp_feels_text)) + "°C"
-    temp_feels_wx0, temp_feels_hx0, temp_feels_wx1, temp_feels_hx1 = draw.textbbox(xy=(temperature_wx1, 5),
-                                                                                   text=temp_feels_text,
-                                                                                   font=wTempFont)
+    _, _ = get_text_size(draw=draw, text=temp_feels_text, font=wTempFont)
 
-    draw.text((temperature_wx1, 5), temp_feels_text, fill=black, font=wTempFont)
+    draw.text((temperature_wx1 + temperature_padding, 5), temp_feels_text, fill=black, font=wTempFont)
 
     if w_hx1 - city_hx1 > 25:
         sunrise_icon = icon_id_to_unicode_ttf('sunrise', '', wiXmlMap)
         sunset_icon = icon_id_to_unicode_ttf('moonrise', '', wiXmlMap)
-        l_ico = draw.textlength(text=sunrise_icon, font=fBoxWiFont)
+
+        l_ico, _ = get_text_size(draw=draw, text=sunrise_icon, font=fBoxWiFont)
         draw.text(xy=(5, w_hx1 - 25), text=sunrise_icon, font=fBoxWiFont, fill=black)
-        l_sunset = draw.textlength(text=sunrise_text, font=wTempFont) + l_ico
+
+        l_sunset, _ = get_text_size(draw=draw, text=sunrise_text, font=wTempFont) + l_ico
         draw.text(xy=(5 + l_ico + 2, w_hx1 - 22), text=sunrise_text, font=wTempFont, fill=black)
 
-        l_ico = draw.textlength(text=sunset_icon, font=fBoxWiFont)
+        l_ico, _ = get_text_size(draw=draw, text=sunset_icon, font=fBoxWiFont)
         draw.text(xy=(l_sunset + 5 * 4, w_hx1 - 25), text=sunset_icon, font=fBoxWiFont, fill=black)
         draw.text(xy=(l_sunset + 5 * 4 + l_ico + 2, w_hx1 - 22), text=sunset_text, font=wTempFont, fill=black)
 

@@ -13,7 +13,6 @@ def load_config(cfg):
         return data
 
 
-debug = False
 full_path = os.path.realpath(__file__)
 workdir = os.path.dirname(full_path)
 
