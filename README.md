@@ -2,6 +2,8 @@
 
 ## Description
 
+![photo_2023-05-01_20-50-26](https://user-images.githubusercontent.com/33179821/235510139-34d6a8b2-36e0-4341-aea6-3971eb90950a.jpg)
+
 A program to display weather and other useless information you could get by looking at the window
 
 ### Technologies used
