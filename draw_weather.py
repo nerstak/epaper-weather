@@ -19,6 +19,7 @@ sTempFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf",
 sHumFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf", 11)
 fBoxFont = ImageFont.truetype(workdir + "/fonts/Ubuntu Nerd Font Complete.ttf", 11)
 fBoxWiFont = ImageFont.truetype(workdir + "/fonts/weathericons-regular-webfont.ttf", 20)
+sunTimeFont = ImageFont.truetype(workdir + "/fonts/weathericons-regular-webfont.ttf", 10)
 
 wiXmlMap = workdir + "/fonts/values/weathericons.xml"
 
@@ -62,7 +63,12 @@ def _current_date():
     return datetime.now().strftime('%a, %b %d')
 
 
-def draw_weather_image(weather, fcast: dict):
+def draw_weather_image(weather: dict, fcast: dict):
+    """
+    Draw the whole weather image to display
+    :param weather: Current weather data
+    :param fcast: Current forecast data
+    """
     img = Image.new("L", (screenWidth, screenHeight), 255)
     draw = ImageDraw.Draw(img)
 
@@ -73,7 +79,7 @@ def draw_weather_image(weather, fcast: dict):
     img_rotated.close()
 
 
-def draw_forecast_boxes(draw, fcast):
+def draw_forecast_boxes(draw: ImageDraw, fcast: dict):
     """
     Draw all forecast boxes
     :param draw: Image with drawing
@@ -88,10 +94,10 @@ def draw_forecast_boxes(draw, fcast):
                 break
             forecast_data = format_data(fcast, slot)
 
-            draw_forecast_box(forecast_data, fcast_col, fcast_row, draw)
+            draw_forecast_box(draw, forecast_data, fcast_col, fcast_row)
 
 
-def draw_forecast_box(forecast_data, box_col, box_row, draw):
+def draw_forecast_box(draw: ImageDraw, forecast_data: dict[str, str], box_col: int, box_row: int):
     """
     Draw a single forecast box
     :param forecast_data: Forecast data
@@ -138,7 +144,7 @@ def draw_forecast_box(forecast_data, box_col, box_row, draw):
     draw.text((temp_rel_wx0, temp_rel_hx0), temperature_text, fill=black, font=fBoxFont)
 
 
-def draw_current_weather(draw, weather):
+def draw_current_weather(draw: ImageDraw, weather: dict):
     """
     Draw current weather info
     :param draw: Pillow Draw
@@ -147,8 +153,8 @@ def draw_current_weather(draw, weather):
     left_padding = 5
 
     # Date & Time
-    hour_wx0, hour_hx0, hour_wx1, hour_hx1 = draw.textbbox(xy=(left_padding, 0), text=_current_time(), font=clockFont)
-    date_wx0, date_hx0, date_wx1, date_hx1 = draw.textbbox(xy=(left_padding, hour_hx1), text=_current_date(),
+    _, _, hour_wx1, hour_hx1 = draw.textbbox(xy=(left_padding, 0), text=_current_time(), font=clockFont)
+    _, _, _, date_hx1 = draw.textbbox(xy=(left_padding, hour_hx1), text=_current_date(),
                                                            font=dateFont)
     draw.text((left_padding, 0), _current_time(), fill=black, font=clockFont)
     draw.text((left_padding, hour_hx1), _current_date(), fill=black, font=dateFont)
@@ -167,84 +173,86 @@ def draw_current_weather(draw, weather):
 
     # Weather Icon
     weather_icon_unicode = icon_to_unicode(weather_ico_code, wiXmlMap)
-    ico_wx0, ico_hx0, ico_wx1, ico_hx1 = draw.textbbox(xy=(hour_wx1 + left_padding, 0),
+    ico_wx0, _, ico_wx1, ico_hx1 = draw.textbbox(xy=(hour_wx1 + left_padding, 0),
                                                        text=weather_icon_unicode, font=wIcoFont)
     draw.text((ico_wx0, 0), weather_icon_unicode, fill=black, font=wIcoFont)
 
     # City Name
     city_and_desc_hx0 = max(ico_hx1, date_hx1) + left_padding
-    city_wx0, city_hx0, city_wx1, city_hx1 = draw.textbbox(xy=(left_padding, city_and_desc_hx0), text=city_text,
+    city_wx0, _, _, _ = draw.textbbox(xy=(left_padding, city_and_desc_hx0), text=city_text,
                                                            font=wCityFont)
     draw.text((city_wx0, city_and_desc_hx0), city_text, fill=black, font=wCityFont)
 
     # Description Weather
-    desc_wx0, desc_hx0, desc_wx1, desc_hx1 = draw.textbbox(xy=(ico_wx0, city_and_desc_hx0), text=description_text,
-                                                           font=wDetFont)
-    draw.text((ico_wx0, city_and_desc_hx0), description_text, fill=black, font=wDetFont)
+    desc_width, desc_height = get_text_size(draw=draw, text=description_text, font=wDetFont)
+    desc_wx0, desc_hx0 = ico_wx0, city_and_desc_hx0
+    draw.text((desc_wx0, desc_hx0), description_text, fill=black, font=wDetFont)
 
     # Temperature
     temperature_text = str(math.ceil(temperature_text)) + "°C"
-    temperature_wx0, temperature_hx0, temperature_wx1, temperature_hx1, = draw.textbbox(xy=(ico_wx1, 5),
+    temperature_wx0, _, temperature_wx1, temperature_hx1 = draw.textbbox(xy=(ico_wx1, 1),
                                                                                         text=temperature_text,
                                                                                         font=wTempFont)
 
-    values_wx0 = max(ico_wx1, desc_wx1)
+    values_wx0 = max(ico_wx1, desc_width)
     values_size_available = int((w_wx1 - values_wx0) / 2)
 
     temperature_padding = int(((values_size_available - (temperature_wx1 - temperature_wx0)) / 2))
-    draw.text((temperature_wx0 + temperature_padding, 5), temperature_text, fill=black, font=wTempFont)
+    draw.text((temperature_wx0 + temperature_padding, 1), temperature_text, fill=black, font=wTempFont)
 
     # Humidity
     humidity_text = str(humidity_text) + "%"
-    humidity_wx0, humidity_hx0, humidity_wx1, humidity_hx1 = draw.textbbox(xy=(ico_wx1, temperature_hx1),
+    humidity_wx0, _, humidity_wx1, _ = draw.textbbox(xy=(ico_wx1, temperature_hx1),
                                                                            text=humidity_text, font=wHumFont)
     humidity_padding = int(((values_size_available - (humidity_wx1 - humidity_wx0)) / 2))
     draw.text((humidity_wx0 + humidity_padding, temperature_hx1), humidity_text, fill=black, font=wHumFont)
 
     # Feels Temperature
     temp_feels_text = " => " + str(math.ceil(temp_feels_text)) + "°C"
-    _, _ = get_text_size(draw=draw, text=temp_feels_text, font=wTempFont)
+    draw.text((temperature_wx1 + temperature_padding, 1), temp_feels_text, fill=black, font=wTempFont)
 
-    draw.text((temperature_wx1 + temperature_padding, 5), temp_feels_text, fill=black, font=wTempFont)
-
-    if w_hx1 - city_hx1 > 25:
+    # Sunrise & Sunset
+    if  w_wx1 - (desc_wx0 + desc_width) >= 90: # 90 is an approximated value of the width
         sunrise_icon = icon_id_to_unicode_ttf('sunrise', '', wiXmlMap)
         sunset_icon = icon_id_to_unicode_ttf('moonrise', '', wiXmlMap)
+        sun_wx0, sun_hx0 = w_wx1 - 90 , desc_hx0
+        w_ico_sunrise, _  = get_text_size(draw=draw, text=sunrise_icon, font=sunTimeFont)
+        draw.text(xy=(sun_wx0, desc_hx0), text=sunrise_icon, font=sunTimeFont, fill=black)
 
-        l_ico, _ = get_text_size(draw=draw, text=sunrise_icon, font=fBoxWiFont)
-        draw.text(xy=(5, w_hx1 - 25), text=sunrise_icon, font=fBoxWiFont, fill=black)
+        w_sunrise, _ = get_text_size(draw=draw, text=sunrise_text, font=wDetFont)
+        draw.text(xy=(sun_wx0 + w_ico_sunrise + 2, desc_hx0), text=sunrise_text, font=wDetFont, fill=black)
 
-        l_sunset, _ = get_text_size(draw=draw, text=sunrise_text, font=wTempFont) + l_ico
-        draw.text(xy=(5 + l_ico + 2, w_hx1 - 22), text=sunrise_text, font=wTempFont, fill=black)
+        w_ico_sunset, _ = get_text_size(draw=draw, text=sunset_icon, font=wDetFont)
+        draw.text(xy=(sun_wx0 + w_ico_sunrise + 2 + w_sunrise + 5, desc_hx0), text=sunset_icon, font=sunTimeFont,
+                  fill=black)
+        draw.text(xy=(sun_wx0+ w_ico_sunrise + 2 + w_sunrise + 5 + w_ico_sunset + 2, desc_hx0),
+                  text=sunset_text, font=wDetFont, fill=black)
 
-        l_ico, _ = get_text_size(draw=draw, text=sunset_icon, font=fBoxWiFont)
-        draw.text(xy=(l_sunset + 5 * 4, w_hx1 - 25), text=sunset_icon, font=fBoxWiFont, fill=black)
-        draw.text(xy=(l_sunset + 5 * 4 + l_ico + 2, w_hx1 - 22), text=sunset_text, font=wTempFont, fill=black)
 
-
-def draw_error(exception: Exception):
+def draw_error(exception: Exception, retry_period: str):
     """
     Draw an error image
     :param exception: Exception
+    :param retry_period: Next retry time
     """
     error_image = Image.new('1', (screenWidth, screenHeight), 255)
     draw = ImageDraw.Draw(error_image)
 
     draw.text((0, 0), "ERROR", font=clockFont, fill=black)
     draw.text((0, 50), str(exception), font=dateFont, fill=black)
-    draw.text((0, 70), 'Retrying in a minute', font=dateFont, fill=black)
+    draw.text((0, 70), 'Retrying in ' + retry_period +'s', font=dateFont, fill=black)
     draw.text((0, 80), 'Last Refresh: ' + str(_current_time()) + " " + str(_current_date()), font=dateFont, fill=black)
     img_rotated = error_image.transpose(Image.ROTATE_180)
     draw_image_on_hardware(img_rotated)
     img_rotated.close()
 
 
-def format_data(fcast_json, slot):
+def format_data(fcast_json: dict, slot: int) -> dict[str, str]:
     """
     Format the data into a dict
     :param fcast_json: JSON
     :param slot: Slot of array to load data from
-    :return:
+    :return: Formatted data
     """
 
     data = {}

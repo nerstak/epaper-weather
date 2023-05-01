@@ -17,12 +17,11 @@ atexit.register(clear_screen)
 error_count = 0
 starting = True
 while True:
-    current_time = time.time()
     ttl_hash = get_ttl_hash(CONFIG['refresh_period_min']['data'] * 60)
 
     log.debug("New loop iteration")
     # We reload if we waited long enough or if there was an error the previous time
-    if (math.floor(current_time / 60) % CONFIG['refresh_period_min']['screen']) == 0 or error_count > 0 or starting:
+    if (math.floor(time.time() / 60) % CONFIG['refresh_period_min']['screen']) == 0 or error_count > 0 or starting:
         starting = False
         # Clearing screen at 3AM
         if datetime.now().strftime('%H') == '03':
@@ -34,7 +33,7 @@ while True:
         except Exception as e:
             log.error(e)
             error_count += 1
-            draw_error(e)
+            draw_error(e, str(wakeup_time_s))
         else:
             log.debug("Drawing image")
             draw_weather_image(weather, fcast)
