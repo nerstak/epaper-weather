@@ -3,7 +3,7 @@ from datetime import datetime
 
 from PIL import ImageFont, Image, ImageDraw
 
-from config import workdir, CONFIG
+from config import workdir, CONFIG, log
 from epd_handler import draw_image_on_hardware, screenWidth, screenHeight
 from ttf import icon_to_unicode, icon_id_to_unicode_ttf, get_text_size
 
@@ -155,7 +155,7 @@ def draw_current_weather(draw: ImageDraw, weather: dict):
     # Date & Time
     _, _, hour_wx1, hour_hx1 = draw.textbbox(xy=(left_padding, 0), text=_current_time(), font=clockFont)
     _, _, _, date_hx1 = draw.textbbox(xy=(left_padding, hour_hx1), text=_current_date(),
-                                                           font=dateFont)
+                                      font=dateFont)
     draw.text((left_padding, 0), _current_time(), fill=black, font=clockFont)
     draw.text((left_padding, hour_hx1), _current_date(), fill=black, font=dateFont)
 
@@ -174,13 +174,13 @@ def draw_current_weather(draw: ImageDraw, weather: dict):
     # Weather Icon
     weather_icon_unicode = icon_to_unicode(weather_ico_code, wiXmlMap)
     ico_wx0, _, ico_wx1, ico_hx1 = draw.textbbox(xy=(hour_wx1 + left_padding, 0),
-                                                       text=weather_icon_unicode, font=wIcoFont)
+                                                 text=weather_icon_unicode, font=wIcoFont)
     draw.text((ico_wx0, 0), weather_icon_unicode, fill=black, font=wIcoFont)
 
     # City Name
     city_and_desc_hx0 = max(ico_hx1, date_hx1) + left_padding
     city_wx0, _, _, _ = draw.textbbox(xy=(left_padding, city_and_desc_hx0), text=city_text,
-                                                           font=wCityFont)
+                                      font=wCityFont)
     draw.text((city_wx0, city_and_desc_hx0), city_text, fill=black, font=wCityFont)
 
     # Description Weather
@@ -191,8 +191,8 @@ def draw_current_weather(draw: ImageDraw, weather: dict):
     # Temperature
     temperature_text = str(math.ceil(temperature_text)) + "°C"
     temperature_wx0, _, temperature_wx1, temperature_hx1 = draw.textbbox(xy=(ico_wx1, 1),
-                                                                                        text=temperature_text,
-                                                                                        font=wTempFont)
+                                                                         text=temperature_text,
+                                                                         font=wTempFont)
 
     values_wx0 = max(ico_wx1, desc_width)
     values_size_available = int((w_wx1 - values_wx0) / 2)
@@ -203,7 +203,7 @@ def draw_current_weather(draw: ImageDraw, weather: dict):
     # Humidity
     humidity_text = str(humidity_text) + "%"
     humidity_wx0, _, humidity_wx1, _ = draw.textbbox(xy=(ico_wx1, temperature_hx1),
-                                                                           text=humidity_text, font=wHumFont)
+                                                     text=humidity_text, font=wHumFont)
     humidity_padding = int(((values_size_available - (humidity_wx1 - humidity_wx0)) / 2))
     draw.text((humidity_wx0 + humidity_padding, temperature_hx1), humidity_text, fill=black, font=wHumFont)
 
@@ -212,20 +212,35 @@ def draw_current_weather(draw: ImageDraw, weather: dict):
     draw.text((temperature_wx1 + temperature_padding, 1), temp_feels_text, fill=black, font=wTempFont)
 
     # Sunrise & Sunset
-    if  w_wx1 - (desc_wx0 + desc_width) >= 90: # 90 is an approximated value of the width
-        sunrise_icon = icon_id_to_unicode_ttf('sunrise', '', wiXmlMap)
-        sunset_icon = icon_id_to_unicode_ttf('moonrise', '', wiXmlMap)
-        sun_wx0, sun_hx0 = w_wx1 - 90 , desc_hx0
-        w_ico_sunrise, _  = get_text_size(draw=draw, text=sunrise_icon, font=sunTimeFont)
-        draw.text(xy=(sun_wx0, desc_hx0), text=sunrise_icon, font=sunTimeFont, fill=black)
+    available_width = w_wx1 - (desc_wx0 + desc_width)
+    draw_sun_times(draw, available_width, desc_hx0, sunrise_text, sunset_text)
 
-        w_sunrise, _ = get_text_size(draw=draw, text=sunrise_text, font=wDetFont)
-        draw.text(xy=(sun_wx0 + w_ico_sunrise + 2, desc_hx0), text=sunrise_text, font=wDetFont, fill=black)
 
-        w_ico_sunset, _ = get_text_size(draw=draw, text=sunset_icon, font=wDetFont)
-        draw.text(xy=(sun_wx0 + w_ico_sunrise + 2 + w_sunrise + 5, desc_hx0), text=sunset_icon, font=sunTimeFont,
+def draw_sun_times(draw: ImageDraw, available_width: int, sun_hx0: int, sunrise_text: str, sunset_text: str):
+    """
+    Draw sunrise & sunset if there is available space
+    :param draw: ImageDraw
+    :param available_width: Available width needed for drawing
+    :param sun_hx0: Height position
+    :param sunrise_text: Sunrise time
+    :param sunset_text: Sunset time
+    """
+    sunrise_icon = icon_id_to_unicode_ttf('sunrise', '', wiXmlMap)
+    sunset_icon = icon_id_to_unicode_ttf('moonrise', '', wiXmlMap)
+
+    w_ico_sunrise, _ = get_text_size(draw=draw, text=sunrise_icon, font=sunTimeFont)
+    w_sunrise, _ = get_text_size(draw=draw, text=sunrise_text, font=wDetFont)
+    w_ico_sunset, _ = get_text_size(draw=draw, text=sunset_icon, font=wDetFont)
+    w_sunset, _ = get_text_size(draw=draw, text=sunset_text, font=wDetFont)
+    len_sun_time = w_ico_sunrise + 2 + w_sunrise + 5 + w_ico_sunset + 2 + w_sunset
+
+    if available_width >= len_sun_time:
+        sun_wx0 = w_wx1 - len_sun_time
+        draw.text(xy=(sun_wx0, sun_hx0), text=sunrise_icon, font=sunTimeFont, fill=black)
+        draw.text(xy=(sun_wx0 + w_ico_sunrise + 2, sun_hx0), text=sunrise_text, font=wDetFont, fill=black)
+        draw.text(xy=(sun_wx0 + w_ico_sunrise + 2 + w_sunrise + 5, sun_hx0), text=sunset_icon, font=sunTimeFont,
                   fill=black)
-        draw.text(xy=(sun_wx0+ w_ico_sunrise + 2 + w_sunrise + 5 + w_ico_sunset + 2, desc_hx0),
+        draw.text(xy=(sun_wx0 + w_ico_sunrise + 2 + w_sunrise + 5 + w_ico_sunset + 2, sun_hx0),
                   text=sunset_text, font=wDetFont, fill=black)
 
 
@@ -240,7 +255,7 @@ def draw_error(exception: Exception, retry_period: str):
 
     draw.text((0, 0), "ERROR", font=clockFont, fill=black)
     draw.text((0, 50), str(exception), font=dateFont, fill=black)
-    draw.text((0, 70), 'Retrying in ' + retry_period +'s', font=dateFont, fill=black)
+    draw.text((0, 70), 'Retrying in ' + retry_period + 's', font=dateFont, fill=black)
     draw.text((0, 80), 'Last Refresh: ' + str(_current_time()) + " " + str(_current_date()), font=dateFont, fill=black)
     img_rotated = error_image.transpose(Image.ROTATE_180)
     draw_image_on_hardware(img_rotated)
