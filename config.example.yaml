@@ -3,5 +3,7 @@ units: metric
 coordinates:
   lat: LAT
   lon: LON
-update_freq_min: 30
+refresh_period_min:
+  data: 30
+  screen: 1
 city: CITY_NAME

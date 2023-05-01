@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 import requests
 
 from config import CONFIG
@@ -6,12 +8,14 @@ _URL_FORECAST5 = "https://api.openweathermap.org/data/2.5/forecast?lat={}&lon={}
 _URL_CURRENT_WEATHER = "https://api.openweathermap.org/data/2.5/weather?lat={}&lon={}&appid={}&units={}"
 
 
-def get_current(lat: float, lon: float, unit: str) -> dict:
+@lru_cache()
+def get_current(lat: float, lon: float, unit: str, ttl_hash) -> dict:
     uri = _URL_CURRENT_WEATHER.format(lat, lon, CONFIG["API_KEY"], unit)
     return _get_weather(uri)
 
 
-def get_forecast5(lat: float, lon: float, unit: str) -> dict:
+@lru_cache()
+def get_forecast5(lat: float, lon: float, unit: str, ttl_hash) -> dict:
     uri = _URL_FORECAST5.format(lat, lon, CONFIG["API_KEY"], unit)
     return _get_weather(uri)
 
