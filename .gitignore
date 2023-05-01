@@ -301,4 +301,5 @@ pip-selfcheck.json
 # End of https://www.toptal.com/developers/gitignore/api/jetbrains,python,venv
 /config.yaml
 .idea
-epaper-weather.service
+systemd/epaper-weather.service
+/systemd/ticktock.service

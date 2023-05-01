@@ -11,6 +11,11 @@ Software:
 - Python3
 - Waveshare e-paper [lib](https://github.com/waveshare/e-Paper/blob/master/RaspberryPi_JetsonNano/python/lib/)
 
+Additional infrastructure:
+
+- [TickTock](https://github.com/ytyou/ticktock)
+- Grafana
+
 Hardware (you are not required to use the exact same one, but you'll need to adapt the program):
 
 - Raspberry Pi 3A+ (I had some lying around)
@@ -30,6 +35,21 @@ TODO
 ## Usage
 
 ### Installation
+
+#### TickTock
+
+[TickTock](https://github.com/ytyou/ticktock) is a lightweight time-series database. Is it production ready? Maybe not,
+but I didn't want something heavy like Prometheus, Influx or else.
+
+`curl -L -o  ticktok.tar.gz https://github.com/ylin30/ticktock-wiki/raw/master/binaries/ticktock.0.11.1-rpi-32bit.tar.gz`
+`tar xvf ticktok.tar.gz`
+`sudo cp ticktock.service /etc/systemd/system`
+`sudo systemctl enable ticktock`
+
+#### Grafana
+
+Follow this [guide](https://grafana.com/tutorials/install-grafana-on-raspberry-pi/) from *Installation* part.
+Add a Datasource, select OpenTSDB and put `http://localhost:6182`.
 
 #### OpenWeather
 

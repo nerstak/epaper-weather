@@ -1,0 +1,12 @@
+[Unit]
+Description=TickTock TSDB
+After=multi-user.target
+
+[Service]
+Type=notify
+Restart=always
+RestartSec=1
+ExecStart=/home/pi/PATH_TO_PROJECT/bin/tt -c /home/pi/PATH_TO_PROJECT/ticktock.0.11.1/conf/tt.conf
+
+[Install]
+WantedBy=multi-user.target
