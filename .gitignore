@@ -302,4 +302,3 @@ pip-selfcheck.json
 /config.yaml
 .idea
 systemd/epaper-weather.service
-/systemd/ticktock.service

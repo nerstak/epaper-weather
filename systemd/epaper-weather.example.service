@@ -3,7 +3,9 @@ Description=ePaper Weather Service
 After=multi-user.target
 
 [Service]
-Type=idle
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/PATH_TO_PROJECT/epaper-weather
 ExecStart=/usr/bin/python /home/pi/PATH_TO_PROJECT/epaper-weather/main.py
 
 [Install]

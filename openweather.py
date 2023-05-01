@@ -3,6 +3,7 @@ from functools import lru_cache
 import requests
 
 from config import CONFIG
+from metrics_handler import log_current_weather
 
 _URL_FORECAST5 = "https://api.openweathermap.org/data/2.5/forecast?lat={}&lon={}&appid={}&units={}"
 _URL_CURRENT_WEATHER = "https://api.openweathermap.org/data/2.5/weather?lat={}&lon={}&appid={}&units={}"
@@ -14,7 +15,10 @@ _URL_CURRENT_WEATHER = "https://api.openweathermap.org/data/2.5/weather?lat={}&l
 @lru_cache()
 def get_current(lat: float, lon: float, unit: str, ttl_hash) -> dict:
     uri = _URL_CURRENT_WEATHER.format(lat, lon, CONFIG["API_KEY"], unit)
-    return _get_weather(uri)
+    res =  _get_weather(uri)
+    if CONFIG["metrics"]["record_metrics"]:
+       log_current_weather(res)
+    return res
 
 
 @lru_cache()

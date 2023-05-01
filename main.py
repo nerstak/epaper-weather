@@ -40,4 +40,4 @@ while True:
             error_count = 0
 
     # TODO: Wait more if error count is high
-    time.sleep(wakeup_time_s - math.ceil(time.time() % wakeup_time_s))
+    time.sleep(wakeup_time_s - math.ceil(time.time() % wakeup_time_s) + 1)

@@ -11,9 +11,9 @@ Software:
 - Python3
 - Waveshare e-paper [lib](https://github.com/waveshare/e-Paper/blob/master/RaspberryPi_JetsonNano/python/lib/)
 
-Additional infrastructure:
+Additional and optional infrastructure:
 
-- [TickTock](https://github.com/ytyou/ticktock)
+- InfluxDB
 - Grafana
 
 Hardware (you are not required to use the exact same one, but you'll need to adapt the program):
@@ -41,20 +41,18 @@ TODO
 
 ### Installation
 
-#### TickTock
+#### InfluxDB
 
-[TickTock](https://github.com/ytyou/ticktock) is a lightweight time-series database. Is it production ready? Maybe not,
-but I didn't want something heavy like Prometheus, Influx or else.
+Optionally, install an InfluxDB (1.8 for 32bits RaspberryPi).
 
-`curl -L -o  ticktok.tar.gz https://github.com/ylin30/ticktock-wiki/raw/master/binaries/ticktock.0.11.1-rpi-32bit.tar.gz`
-`tar xvf ticktok.tar.gz`
-`sudo cp ticktock.service /etc/systemd/system`
-`sudo systemctl enable ticktock`
+You will need to create a Database (no credential used here).
 
 #### Grafana
 
+Optionally, install Grafana.
+
 Follow this [guide](https://grafana.com/tutorials/install-grafana-on-raspberry-pi/) from *Installation* part.
-Add a Datasource, select OpenTSDB and put `http://localhost:6182`.
+Add a Datasource, select InfluxDB and put `http://localhost:8086`.
 
 #### OpenWeather
 
@@ -80,10 +78,24 @@ following elements:
   have no effect)
 - `city`: Name of the location of the place you are tracking the weather of. OpenWeather API does not always give a
   relevant city name
+- `metrics`: If you wish to monitor data. Set `record_metrics` to `false` or `true`. Set `database_url`
+  and `database_name` to the one setup during InfluxDB installation.
+
+Run `pip install -Ur requirements.txt`
 
 #### Service (auto-run)
 
-TODO
+Copy the file `systemd/epaper-weather.example.service` and name the new file `systemd/epaper-weather.service`. Inside, you will need to configure the
+following elements:
+- `User`: Put your own user
+- `PATH_TO_PROJECT`: Path of your project location
+
+```
+sudo cp systemd/epaper-weather.service /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable epaper-weather
+sudo systemctl start epaper-weather
+```
 
 ## Related projects
 
