@@ -73,3 +73,8 @@ following elements:
 #### Service (auto-run)
 
 TODO
+
+## Related projects
+Some projects that helped me overcome some issues: 
+- [inkyWeather](https://github.com/xenOs76/inkyWeather): a similar project with Inky pHAT. I borrowed some graphical parts
+- [E-paper Weather Display](https://github.com/AbnormalDistributions/e_paper_weather_display): a similar project with a bigger screen
