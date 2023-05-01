@@ -32,6 +32,11 @@ Minimal hardware requirements:
 
 TODO
 
+### ToDo
+
+- Use a temperature & humidity sensor
+- Auto-install script
+
 ## Usage
 
 ### Installation
@@ -56,6 +61,12 @@ Add a Datasource, select OpenTSDB and put `http://localhost:6182`.
 Go to [OpenWeather](https://openweathermap.org/price#current), create an account and create a key for the Professional
 Collection Free Tier. This tier **does not** require a credit card.
 
+#### ePaper Weather
+
+Download the `lib` folder
+from [waveshare repository](https://github.com/waveshare/e-Paper/tree/master/RaspberryPi_JetsonNano/python/lib/waveshare_epd),
+and put it at the root of the project
+
 #### config.yaml
 
 Copy the file `config.example.yaml` and name the new file `config.yaml`. Inside, you will need to configure the
@@ -75,6 +86,10 @@ following elements:
 TODO
 
 ## Related projects
-Some projects that helped me overcome some issues: 
-- [inkyWeather](https://github.com/xenOs76/inkyWeather): a similar project with Inky pHAT. I borrowed some graphical parts
-- [E-paper Weather Display](https://github.com/AbnormalDistributions/e_paper_weather_display): a similar project with a bigger screen
+
+Some projects that helped me overcome some issues:
+
+- [inkyWeather](https://github.com/xenOs76/inkyWeather): a similar project with Inky pHAT. I borrowed some graphical
+  parts
+- [E-paper Weather Display](https://github.com/AbnormalDistributions/e_paper_weather_display): a similar project with a
+  bigger screen
