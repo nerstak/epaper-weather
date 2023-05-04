@@ -83,7 +83,7 @@ following elements:
 - `metrics`: If you wish to monitor data. Set `record_metrics` to `false` or `true`. Set `database_url`
   and `database_name` to the one setup during InfluxDB installation.
 
-Run `pip install -Ur requirements.txt`
+Run `pip install -Ur requirements.txt`, `sudo apt-get install libgpiod2`
 
 #### Service (auto-run)
 

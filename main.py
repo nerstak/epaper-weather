@@ -6,6 +6,7 @@ from datetime import datetime
 import atexit
 
 from config import CONFIG, wakeup_time_s, log
+from dht22 import get_temperature_humidity, exit_dht_sensor
 from draw_weather import draw_weather_image, draw_error
 from epd_handler import clear_screen
 
@@ -13,6 +14,7 @@ from openweather import get_current, get_forecast5
 from utils import get_ttl_hash
 
 atexit.register(clear_screen)
+atexit.register(exit_dht_sensor)
 
 error_count = 0
 starting = True
@@ -30,6 +32,7 @@ while True:
         try:
             weather = get_current(CONFIG['coordinates']['lat'], CONFIG['coordinates']['lon'], CONFIG['units'], ttl_hash)
             fcast = get_forecast5(CONFIG['coordinates']['lat'], CONFIG['coordinates']['lon'], CONFIG['units'], ttl_hash)
+            local_data = get_temperature_humidity()
         except Exception as e:
             log.error(e)
             error_count += 1
