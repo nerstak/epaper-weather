@@ -46,6 +46,7 @@ def log_current_weather(weather: dict):
         weather_cloudiness,
     ])
 
+
 def log_local_temperature_humidity(temperature: float, humidity: float):
     """
     Save local temperature & humidity
@@ -55,17 +56,18 @@ def log_local_temperature_humidity(temperature: float, humidity: float):
     tags = {
         "city": CONFIG['city']
     }
-    weather_temp = format_to_influx("local.temperature", temperature, tags)
-    weather_humidity = format_to_influx("local.humidity", humidity, tags)
+    local_temp = format_to_influx("local.temperature", temperature, tags)
+    local_humidity = format_to_influx("local.humidity", humidity, tags)
 
     _post_metrics([
-        weather_temp,
-        weather_humidity,
+        local_temp,
+        local_humidity,
     ])
+
 
 def _post_metrics(metrics: [str]):
     """
-    Post metrics on a InfluxDb
+    Post metrics on an InfluxDb
     :param metrics: Array of metrics
     """
     res = requests.post(_URL_INFLUX_FORMATTED, '\n'.join(metrics))

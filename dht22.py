@@ -37,7 +37,7 @@ def retrieve_data_sensor(tries = 5) -> (float, float):
     """
     Retrieve data from sensor
     :param tries: number of time to accept an error
-    :return:
+    :return: (temperature, humidity)
     """
     nb_try = 0
     while nb_try < tries:
