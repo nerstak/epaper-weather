@@ -14,9 +14,7 @@ def _create_connection_sensor() -> adafruit_dht.DHT22:
     """
     return adafruit_dht.DHT22(_pin)
 
-dhtDevice = _create_connection_sensor()
-
-def exit_dht_sensor():
+def exit_dht_sensor(dhtDevice: adafruit_dht.DHT22):
     """
     Properly exit sensor
     """
@@ -39,6 +37,7 @@ def retrieve_data_sensor(tries = 5) -> (float, float):
     :param tries: number of time to accept an error
     :return: (temperature, humidity)
     """
+    dhtDevice = _create_connection_sensor()
     nb_try = 0
     while nb_try < tries:
         try:
@@ -51,4 +50,6 @@ def retrieve_data_sensor(tries = 5) -> (float, float):
             dhtDevice.exit()
             raise error
         else:
+            dhtDevice.exit()
             return temp, hum
+    dhtDevice.exit()

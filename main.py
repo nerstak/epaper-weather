@@ -6,7 +6,7 @@ from datetime import datetime
 import atexit
 
 from config import CONFIG, wakeup_time_s, log
-from dht22 import get_temperature_humidity, exit_dht_sensor
+from dht22 import get_temperature_humidity
 from draw_weather import draw_image, draw_error
 from epd_handler import clear_screen
 
@@ -14,7 +14,6 @@ from openweather import get_current, get_forecast5
 from utils import get_ttl_hash
 
 atexit.register(clear_screen)
-atexit.register(exit_dht_sensor)
 
 error_count = 0
 starting = True
