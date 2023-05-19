@@ -2,7 +2,7 @@
 
 ## Description
 
-![photo_2023-05-01_20-50-26](https://user-images.githubusercontent.com/33179821/235510139-34d6a8b2-36e0-4341-aea6-3971eb90950a.jpg)
+![IMG20230505162319-01](https://github.com/nerstak/epaper-weather/assets/33179821/0891a2b7-28ef-4423-9af8-17cc1ae9a916)
 
 A program to display weather and other useless information you could get by looking at the window
 
@@ -22,6 +22,7 @@ Hardware (you are not required to use the exact same one, but you'll need to ada
 
 - Raspberry Pi 3A+ (I had some lying around)
 - [Waveshare 2.13inch e-paper](https://www.waveshare.com/wiki/2.13inch_e-Paper_HAT_Manual)
+- DHT22 sensor, for humidity and temperature
 
 Minimal hardware requirements:
 
@@ -32,12 +33,11 @@ Minimal hardware requirements:
 
 ### Features
 
-TODO
-
-### ToDo
-
-- Use a temperature & humidity sensor
-- Auto-install script
+- Display current weather (temperature, humidity, rain)
+- Display 24hours forecast
+- Display sunrise and sunset time
+- Display temperature and humidity from sensor (optional)
+- Log data into InfluxDB (optional)
 
 ## Usage
 
@@ -104,6 +104,6 @@ sudo systemctl start epaper-weather
 Some projects that helped me overcome some issues:
 
 - [inkyWeather](https://github.com/xenOs76/inkyWeather): a similar project with Inky pHAT. I borrowed some graphical
-  parts
+  parts to speed up the development process
 - [E-paper Weather Display](https://github.com/AbnormalDistributions/e_paper_weather_display): a similar project with a
   bigger screen
